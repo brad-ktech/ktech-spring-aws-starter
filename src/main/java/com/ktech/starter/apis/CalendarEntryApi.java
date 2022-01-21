@@ -3,17 +3,15 @@ package com.ktech.starter.apis;
 
 import com.ktech.starter.models.CalendarEntry;
 import com.ktech.starter.models.Request;
-import com.ktech.starter.services.ClioService;
-import com.ktech.starter.vaults.ClioConfigurationVault;
+import com.ktech.starter.services.ClioApi;
 import org.apache.http.client.utils.URIBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 @Service
-public class CalendarEntryApi extends ClioService {
+public class CalendarEntryApi extends ClioApi {
 
 
 

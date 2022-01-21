@@ -1,15 +1,14 @@
 package com.ktech.starter.apis;
 
 import com.ktech.starter.models.Matter;
-import com.ktech.starter.services.ClioService;
+import com.ktech.starter.services.ClioApi;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.URISyntaxException;
 
 
 @Service
-public class MatterApi extends ClioService {
+public class MatterApi extends ClioApi {
 
 
 

@@ -13,7 +13,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class ClioService {
+public class ClioApi {
 
 
     protected static ReentrantLock lock = new ReentrantLock();
