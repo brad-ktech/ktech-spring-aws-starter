@@ -1,0 +1,52 @@
+package com.ktech.starter.configurations;
+
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+
+@Configuration
+@ConditionalOnProperty(
+        value="aws.enabled",
+        havingValue = "true",
+        matchIfMissing = true
+)
+
+
+public class AWSConfiguration {
+
+    @Value("#{systemEnvironment['AWS_REGION']}")
+    private String region;
+
+
+    @Bean
+    public AWSSecretsManager getSecretManager() {
+
+        return AWSSecretsManagerClientBuilder.standard()
+                .withRegion(region)
+                .build();
+    }
+
+    @Bean
+    public AmazonSimpleEmailService getSesService() {
+        return AmazonSimpleEmailServiceClientBuilder.standard()
+                .withRegion(region)
+                .build();
+    }
+
+
+
+
+
+
+
+
+
+
+}
