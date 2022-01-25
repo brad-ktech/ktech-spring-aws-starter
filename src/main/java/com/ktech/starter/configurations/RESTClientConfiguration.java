@@ -18,6 +18,7 @@ public class RESTClientConfiguration {
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory());
+
         return restTemplate;
     }
 

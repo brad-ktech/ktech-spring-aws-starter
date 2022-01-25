@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.ktech</groupId>
 	<artifactId>ktech-spring-aws-starter</artifactId>
-	<version>0.0.31-SNAPSHOT</version>
+	<version>0.0.37-SNAPSHOT</version>
 	<name>ktech-spring-aws-starter</name>
 	<description>KTech Spring AWS Starter Jar</description>
 	<properties>
@@ -46,6 +46,14 @@
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>4.3.11.RELEASE</version>
+		</dependency>
+
+
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -78,6 +86,14 @@
 			<artifactId>java-uuid-generator</artifactId>
 			<version>4.0.1</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-client -->
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
