@@ -2,10 +2,13 @@ package com.ktech.starter.clio.apis;
 
 import com.ktech.starter.annotations.ApiFields;
 import com.ktech.starter.annotations.ApiPath;
+import com.ktech.starter.clio.models.CalendarEntry;
+import com.ktech.starter.vaults.ClioConfigurationVault;
 import org.apache.commons.lang3.StringUtils;
 
 public class AbstractRestAPI {
 
+    protected ClioConfigurationVault vault;
 
     protected String encodeFields(String aFieldString) {
         return aFieldString.replace("{", "%7B").replace("}", "%7D");
@@ -35,6 +38,15 @@ public class AbstractRestAPI {
         }
         return ret;
 
+
+    }
+
+    protected <T> String getUrl(Class<T> clazz){
+
+        String host = vault.getAPITarget();
+        String path = this.getPathFromClass(CalendarEntry.class);
+        String url = host + "/" +  path;
+        return url;
 
     }
 }

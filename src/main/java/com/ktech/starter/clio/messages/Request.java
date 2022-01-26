@@ -1,5 +1,6 @@
 package com.ktech.starter.clio.messages;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,13 @@ public class Request<T>{
     public String toString(int anIndentFactor) {
         JSONObject obj = new JSONObject(this);
         return obj.toString(anIndentFactor);
+    }
+
+    public String goJson(){
+
+        Gson g = new Gson();
+        return g.toJson(this);
+
     }
 
 }
