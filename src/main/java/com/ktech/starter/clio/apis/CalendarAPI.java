@@ -27,8 +27,6 @@ public class CalendarAPI extends AbstractRestAPI{
 
     public <T> void saveCalendarEntry(CalendarEntry ce) throws IOException, URISyntaxException {
 
-
-        System.out.println("in CalendarAPI");
             doPost(ce);
 
     }

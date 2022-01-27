@@ -60,14 +60,14 @@ public class AbstractRestAPI {
     }
 
     protected <T> void doPost(T t) throws IOException {
-System.out.println("in do post");
+
         try(CloseableHttpClient client = HttpClients.createDefault()) {
 
             HttpPost post = new HttpPost(getUrl(t.getClass()));
             post.setHeaders(getBasicHeaders());
             Request<T> request = new Request<>(t);
             post.setEntity(new StringEntity(new Gson().toJson(request)));
-            System.out.println("after post entity");
+
 
             HttpResponse response = client.execute(post);
             HttpEntity entity = response.getEntity();
