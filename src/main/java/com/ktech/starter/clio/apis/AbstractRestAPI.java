@@ -61,6 +61,7 @@ public class AbstractRestAPI {
 
     protected <T> void doPost(T t) throws IOException {
 
+       T ret = null;
         try(CloseableHttpClient client = HttpClients.createDefault()) {
 
             HttpPost post = new HttpPost(getUrl(t.getClass()));
@@ -72,6 +73,7 @@ public class AbstractRestAPI {
             HttpResponse response = client.execute(post);
             HttpEntity entity = response.getEntity();
             String json = IOUtils.toString(entity.getContent(), "UTF-8");
+
             Result<CalendarEntry> result = new Gson().fromJson(json, Result.class);
 
             System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());

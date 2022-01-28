@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.ktech</groupId>
 	<artifactId>ktech-spring-aws-starter</artifactId>
-	<version>0.0.58-SNAPSHOT</version>
+	<version>0.0.60-SNAPSHOT</version>
 	<name>ktech-spring-aws-starter</name>
 	<description>KTech Spring AWS Starter Jar</description>
 	<properties>
