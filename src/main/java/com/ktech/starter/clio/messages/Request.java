@@ -10,24 +10,25 @@ import org.json.JSONObject;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Request<T>{
 
     @SerializedName("data")
     private T data;
 
-    public String toString() {
 
-        return this.toString(0);
+    private Request(T t ){
+
+        this.data = t;
     }
 
-    public String toString(int anIndentFactor) {
-        JSONObject obj = new JSONObject(this);
-        return obj.toString(anIndentFactor);
-    }
+   public static <T> Request<T> of(T t){
 
-    public String goJson(){
+       return new Request<>(t);
+
+
+   }
+
+    public String toJson(){
 
         Gson g = new Gson();
         return g.toJson(this);
