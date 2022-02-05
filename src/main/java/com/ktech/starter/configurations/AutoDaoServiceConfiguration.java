@@ -4,6 +4,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import com.ktech.starter.dao.AutoDaoService;
+import com.ktech.starter.dao.DaoAccelerator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +25,12 @@ public class AutoDaoServiceConfiguration {
 	public AutoDaoService getDao() {
 		
 		return new AutoDaoService(em);
+	}
+
+	@Bean
+	public DaoAccelerator getAccelorator(@Autowired AutoDaoService dao){
+
+		return new DaoAccelerator(dao);
 	}
 	
 	

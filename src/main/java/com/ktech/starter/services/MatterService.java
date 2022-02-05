@@ -1,23 +1,15 @@
 package com.ktech.starter.services;
 
 
-import com.ktech.starter.dao.AutoDaoService;
 import com.ktech.starter.entities.Matter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.Optional;
 
 @Service
-public class MatterService {
+public class MatterService extends AbstractService{
 
-    private AutoDaoService dao;
 
-    public MatterService(@Autowired AutoDaoService dao){
-
-        this.dao = dao;
-    }
 
     public Optional<Matter> getMatter(Long id){
 

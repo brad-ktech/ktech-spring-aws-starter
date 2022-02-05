@@ -1,33 +1,34 @@
 package com.ktech.starter.clio.apis;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.ktech.starter.annotations.ApiFields;
 import com.ktech.starter.annotations.ApiPath;
 import com.ktech.starter.clio.messages.Request;
 import com.ktech.starter.clio.messages.Result;
-import com.ktech.starter.clio.models.CalendarEntry;
+import com.ktech.starter.clio.models.IDObject;
 import com.ktech.starter.exceptions.ClioException;
 import com.ktech.starter.exceptions.RetryThrowable;
 import com.ktech.starter.vaults.ClioConfigurationVault;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -39,105 +40,61 @@ public class AbstractRestAPI {
     @Autowired
     protected ClioConfigurationVault vault;
 
+    @Autowired
+    protected Client clio;
+
+    @Value("${clio.retries:5}")
+    private Integer maxTries;
+
     private AtomicInteger counter = new AtomicInteger(0);
-    private Integer maxTries = 5;
+
 
     protected <T> T doGet(Class<T> clazz, Long id) {
 
-        T ret = null;
-        try(CloseableHttpClient client = HttpClients.createDefault()) {
+        WebTarget target = clio.target(vault.getAPITarget())
+                                  .path(getPathFromClass(clazz))
+                                  .path(id.toString())
+                                  .queryParam("fields", getFieldsFromClass(clazz));
+
+        return doGet(clazz, target);
 
 
-            counter.getAndIncrement();
-            if(counter.get() > maxTries){
-                throw new ClioException("Exceeded maximum number of retries");
-            }
+    }
 
-            URIBuilder builder = new URIBuilder();
-            builder.setHost(getUrl(clazz));
-            builder.setPath(getPathFromClass(clazz));
-            builder.setPath(id.toString());
-            String url =  builder.build().toURL().toString();
-            HttpGet get = new HttpGet(url);
-            get.setHeaders(getBasicHeaders());
-            HttpResponse response = client.execute(get);
-            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
-            Result<T> result = getResultFromResponse(response);
-            return result.getData();
+    protected <T> T doGet(Class<T> clazz, String query){
 
-        }catch(RetryThrowable retry){
-            if(counter.get() < maxTries){
-                ret = doGet(clazz, id);
-            }
-
-
-        } catch (IOException | InterruptedException | ClioException | URISyntaxException e) {
-            log.error(e.getMessage());
-        }
-        return ret;
-
-
+        WebTarget target = clio.target(vault.getAPITarget())
+                                 .path(getPathFromClass(clazz))
+                                 .queryParam("query", query)
+                                 .queryParam("fields", getFieldsFromClass(clazz));
+        return doGet(clazz, target);
 
 
     }
 
 
-    protected <T> T  doPost(T t) {
+    protected <T> IDObject  doPost(T t) {
 
 
-        T ret = null;
-        try(CloseableHttpClient client = HttpClients.createDefault()) {
+        WebTarget target = clio.target(vault.getAPITarget())
+                               .path(getPathFromClass(t.getClass()));
 
-            counter.getAndIncrement();
-            if(counter.get() > maxTries){
-                throw new ClioException("Exceeded maximum number of retries");
-            }
-            HttpPost post = new HttpPost(getUrl(t.getClass()));
-            post.setHeaders(getBasicHeaders());
-            Request<T> request = Request.of(t);
-            post.setEntity(new StringEntity(new Gson().toJson(request)));
-            HttpResponse response = client.execute(post);
-            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
-            Result<T> result = getResultFromResponse(response);
-            ret =  result.getData();
+        return doPost(t, target);
 
-
-        }catch(RetryThrowable retry){
-             ret = doPost(t);
-
-        } catch (IOException | InterruptedException | ClioException e) {
-            log.error(e.getMessage());
-        }
-        return ret;
 
     }
 
-    protected <T> T doPatch(T t){
+    protected <T> IDObject doPatch(T  t){
 
-        T ret = null;
-        try(CloseableHttpClient client = HttpClients.createDefault()) {
+        IDObject entity = (IDObject)t;
+        WebTarget target = clio.target(vault.getAPITarget())
+                                  .path(getPathFromClass(t.getClass()))
+                                  .queryParam("id", entity.getId());
 
-            counter.getAndIncrement();
-            if(counter.get() > maxTries){
-                throw new ClioException("Exceeded maximum number of retries");
-            }
-            HttpPatch patch = new HttpPatch(getUrl(t.getClass()));
-            patch.setHeaders(getBasicHeaders());
-            Request<T> request = Request.of(t);
-            patch.setEntity(new StringEntity(new Gson().toJson(request)));
-            HttpResponse response = client.execute(patch);
-            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
-            Result<T> result = getResultFromResponse(response);
-            ret =  result.getData();
+        return doPatch(t, target);
 
 
-        }catch(RetryThrowable retry){
-            ret = doPost(t);
 
-        } catch (IOException | InterruptedException | ClioException e) {
-            log.error(e.getMessage());
-        }
-        return ret;
 
     }
 
@@ -151,9 +108,9 @@ public class AbstractRestAPI {
     }
 
 
-    protected <T> Result<T> getResultFromResponse(HttpResponse response) throws IOException, RetryThrowable, InterruptedException, ClioException {
+    protected <T> Result<T> getResultFromResponse(Class<T> clazz, HttpResponse response) throws IOException, RetryThrowable, InterruptedException, ClioException {
 
-        String json = StringUtils.EMPTY;
+        Result<T> result = null;
         if (response.getStatusLine().getStatusCode() == 429) {
             // sleep or load balance
 
@@ -181,31 +138,27 @@ public class AbstractRestAPI {
 
             }
         } else if (response.getStatusLine().getStatusCode() == 401) {
-            System.out.println("received 401: reloading Client Manager");
-            //throw a client failure exception
-            //TODO Request is still going to fail due to aTarget referencing old client
-            //TODO even calling it recursively here wont help since the aTarget was passed in
+            System.out.println("Received 401");
+            throw new ClioException("Recieved 401 :  Unauthorized");
+
         } else if (response.getStatusLine().getStatusCode() != 200 &&response.getStatusLine().getStatusCode() != 201) {
             //throw a failure exception
             //System.err.println("WebTarget: " + aTarget);
             //System.err.println("Entity: " + anEntity);
-            throw new ClioException("Status 200 Failure");
+            throw new ClioException("Status 200: Failure");
         }else{
-            HttpEntity entity = response.getEntity();
-            json = IOUtils.toString(entity.getContent(), "UTF-8");
+
+            String content = EntityUtils.toString(response.getEntity());
+            System.out.println(content);
+            Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+            ;
+
+            result =  gson.fromJson(content, TypeToken.getParameterized(Result.class, clazz).getType());
+
+
         }
 
-        return new Gson().fromJson(json, Result.class);
-
-    }
-
-
-    protected <T> String getUrl(Class<T> clazz){
-
-        String host = vault.getAPITarget();
-        String path = this.getPathFromClass(CalendarEntry.class);
-        String url = host + "/" +  path;
-        return url;
+        return result;
 
     }
 
@@ -220,8 +173,7 @@ public class AbstractRestAPI {
         String ret = StringUtils.EMPTY;
         if(clazz.isAnnotationPresent(ApiFields.class)){
             ApiFields ann = clazz.getAnnotation(ApiFields.class);
-            ret = ann.fields();
-
+            ret = encodeFields(ann.fields());
 
         }
         return ret;
@@ -231,6 +183,7 @@ public class AbstractRestAPI {
 
         String ret = StringUtils.EMPTY;
         if(clazz.isAnnotationPresent(ApiPath.class)){
+
             ApiPath ann = clazz.getAnnotation(ApiPath.class);
             ret = ann.path();
 
@@ -238,6 +191,99 @@ public class AbstractRestAPI {
         }
         return ret;
 
+
+    }
+
+
+    private <T> IDObject doPatch(T t, WebTarget target){
+
+        IDObject ret = null;
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+
+            counter.getAndIncrement();
+            if(counter.get() > maxTries){
+                throw new ClioException("Exceeded maximum number of retries");
+            }
+            HttpPatch patch = new HttpPatch(target.getUri().toString());
+            patch.setHeaders(getBasicHeaders());
+            Request<T> request = Request.of(t);
+            patch.setEntity(new StringEntity(new Gson().toJson(request)));
+            HttpResponse response = client.execute(patch);
+            log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            Result<IDObject> result = getResultFromResponse(IDObject.class, response);
+            ret =  result.getData();
+
+
+        }catch(RetryThrowable retry){
+            ret = doPatch(t, target);
+
+        } catch (IOException | InterruptedException | ClioException e) {
+            log.error(e.getMessage());
+        }
+        return ret;
+
+    }
+
+    private <T> IDObject doPost(T t, WebTarget target) {
+
+        IDObject ret = null;
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+
+            counter.getAndIncrement();
+            if(counter.get() > maxTries){
+                throw new ClioException("Exceeded maximum number of retries");
+            }
+            HttpPatch patch = new HttpPatch(target.getUri().toString());
+            patch.setHeaders(getBasicHeaders());
+            Request<T> request = Request.of(t);
+            patch.setEntity(new StringEntity(new Gson().toJson(request)));
+            HttpResponse response = client.execute(patch);
+            log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            Result<IDObject> result = getResultFromResponse(IDObject.class, response);
+            ret =  result.getData();
+
+
+        }catch(RetryThrowable retry){
+            ret = doPost(t, target);
+
+        } catch (IOException | InterruptedException | ClioException e) {
+            log.error(e.getMessage());
+        }
+        return ret;
+
+
+    }
+
+    private <T> T  doGet(Class<T> clazz, WebTarget target) {
+
+        T ret = null;
+
+
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            counter.getAndIncrement();
+            if(counter.get() > maxTries){
+                throw new ClioException("Exceeded maximum number of retries");
+            }
+            HttpGet get = new HttpGet(target.getUri().toString());
+            get.setHeaders(getBasicHeaders());
+            HttpResponse response = client.execute(get);
+            log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            Result<T> result = getResultFromResponse(clazz, response);
+            ret = result.getData();
+
+        }catch(RetryThrowable retry){
+            if(counter.get() < maxTries){
+                ret = doGet(clazz, target);
+            }
+
+
+        } catch (IOException | InterruptedException | ClioException e) {
+            log.error(e.getMessage());
+        }
+        return ret;
 
     }
 }

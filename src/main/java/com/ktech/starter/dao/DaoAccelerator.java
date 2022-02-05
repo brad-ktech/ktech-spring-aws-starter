@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
 
-@Service
 public class DaoAccelerator {
 
 	
@@ -26,7 +25,7 @@ public class DaoAccelerator {
 	
 	
 
-	public DaoAccelerator(@Autowired AutoDaoService ads) {
+	public DaoAccelerator(AutoDaoService ads) {
 
 		this.dao = ads;
 
