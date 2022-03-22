@@ -12,12 +12,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+
 import com.ktech.starter.enums.BaseEnum;
 import com.ktech.starter.enums.QueryComparatorEnum;
 import com.ktech.starter.enums.QueryEnum;
 import com.ktech.starter.utilities.Reflectotron;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.logging.log4j.Logger;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 
 public abstract class BaseDaoService<T> implements Dao<T> { 
@@ -142,6 +145,7 @@ public abstract class BaseDaoService<T> implements Dao<T> {
 		return count.intValue();
 	}
 
+	@Transactional
 	public <T> T save(T entity) {
 
 		T merged = null;
@@ -152,7 +156,13 @@ public abstract class BaseDaoService<T> implements Dao<T> {
 
 		return merged;
 	}
-	
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public <T> T saveInNewTransaction(T entity){
+
+		return save(entity);
+
+	}
 	
 
 	public int executeNativeUpdate(String query) {

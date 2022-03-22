@@ -30,6 +30,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,6 +73,21 @@ public class AbstractRestAPI {
 
     }
 
+    protected <T> T doGet(Class<T> clazz, Map<String, String> params){
+
+        WebTarget target = clio.target(vault.getAPITarget())
+                               .path(getPathFromClass(clazz))
+                               .queryParam("fields", getFieldsFromClass(clazz));
+
+        for(String key : params.keySet()){
+            target = target.queryParam(key, params.get(key));
+        }
+        return doGet(clazz, target);
+
+
+
+    }
+
 
     protected <T> IDObject  doPost(T t) {
 
@@ -94,8 +110,6 @@ public class AbstractRestAPI {
         return doPatch(t, target);
 
 
-
-
     }
 
     protected Header[] getBasicHeaders(){
@@ -116,16 +130,13 @@ public class AbstractRestAPI {
 
 
             Optional<Header> opt = Arrays.stream(response.getAllHeaders()).filter(h -> {
-
-                BasicHeader bh = (BasicHeader)h;
-                return bh.getName().contains("Retry");
-
+                return h.getName().contains("Retry");
             }).findFirst();
 
             int retry = 0;
             if(opt.isPresent()){
 
-                BasicHeader retryHeader = (BasicHeader)opt.get();
+                Header retryHeader = opt.get();
                 retry = Integer.parseInt(retryHeader.getValue());
             }
 
@@ -260,7 +271,7 @@ public class AbstractRestAPI {
 
         T ret = null;
 
-
+System.out.println(target.getUri().toString());
         try(CloseableHttpClient client = HttpClients.createDefault()) {
             counter.getAndIncrement();
             if(counter.get() > maxTries){

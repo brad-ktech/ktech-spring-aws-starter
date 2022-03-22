@@ -3,6 +3,8 @@ package com.ktech.starter.clio.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
+import com.ktech.starter.annotations.ApiFields;
+import com.ktech.starter.annotations.ApiPath;
 import lombok.*;
 
 import java.util.Date;
@@ -17,6 +19,13 @@ import java.util.List;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ApiPath(path="bills")
+@ApiFields(fields ="id,etag,number,issued_at,created_at,due_at,tax_rate,secondary_tax_rate,updated_at,subject,purchase_order,"
+        + "type,memo,start_at,end_at,balance,state,kind,total,paid,paid_at,pending,due,discount_services_only,can_update,credits_issued,"
+        + "shared,last_sent_at,services_secondary_tax,services_sub_total,services_tax, services_taxable_sub_total,"
+        + "services_secondary_taxable_sub_total,taxable_sub_total,secondary_taxable_sub_total,sub_total,tax_sum,"
+        + "secondary_tax_sum,available_state_transitions,balances{id,amount,type,interest_amount,due}")
+
 public class Bill extends IDObject {
 
   @SerializedName("number")

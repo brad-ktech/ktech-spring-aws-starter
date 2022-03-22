@@ -7,10 +7,7 @@ import com.ktech.starter.dao.PersistenceListener;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.EntityListeners;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import java.io.*;
 import java.time.LocalDateTime;
 
@@ -22,6 +19,7 @@ public class BaseEntity {
 
     @Id
     @Column(name="id")
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
     @Column(name="created_at")

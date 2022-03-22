@@ -12,8 +12,6 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RESTClientConfiguration {
 
-    @Autowired
-    private ClioConfigurationVault vault;
 
     @Bean
     public RestTemplate restTemplate() {

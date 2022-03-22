@@ -16,7 +16,6 @@ import java.util.Locale;
         value="rds.enabled",
         havingValue = "true",
         matchIfMissing = true)
-
 public class RDSConfiguration extends BaseVaultConfiguration{
 
 
