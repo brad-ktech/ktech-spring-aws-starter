@@ -7,6 +7,7 @@ import com.ktech.starter.annotations.ApiFields;
 import com.ktech.starter.annotations.ApiPath;
 import com.ktech.starter.clio.messages.Request;
 import com.ktech.starter.clio.messages.Result;
+import com.ktech.starter.clio.messages.responses.BulkResult;
 import com.ktech.starter.clio.models.IDObject;
 import com.ktech.starter.exceptions.ClioException;
 import com.ktech.starter.exceptions.RetryThrowable;
@@ -27,11 +28,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -89,6 +96,8 @@ public class AbstractRestAPI {
     }
 
 
+
+
     protected <T> IDObject  doPost(T t) {
 
 
@@ -111,6 +120,94 @@ public class AbstractRestAPI {
 
 
     }
+
+    protected <T> BulkResult<T> doBulk(Class<T> clazz , LocalDateTime updatedSince, int tries, int aDelayInSeconds){
+
+        BulkResult<T> result = new BulkResult<>();
+
+        WebTarget target = clio.target(vault.getAPITarget())
+                                .path(getPathFromClass(clazz))
+                                .queryParam("updated_since", DateTimeFormatter.ISO_INSTANT.format(updatedSince))
+                                .queryParam("fields", getFieldsFromClass(clazz));
+
+
+        Map<String,String> requestHeaders = new HashMap<String,String>();
+        requestHeaders.put("X-BULK","true");
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+        for (Map.Entry<String,String> entry: requestHeaders.entrySet()) {
+            invocationBuilder.header(entry.getKey(),entry.getValue());
+        }
+        Response response = invocationBuilder.get();
+
+        System.out.println("Response: " + response.getStatus());
+        if (response.getStatus() == 202) { //accepted
+            MultivaluedMap<String,String> headers = response.getStringHeaders();
+            System.out.println("headers: " + headers.toString());
+            System.out.println("Location: " + headers.getFirst("Location"));
+            try {
+                for (int i = 0; i< tries; i++) {
+                    System.out.format("Waiting for bulk result[%d/%d]: %d\n",i+1, tries, aDelayInSeconds);
+                    TimeUnit.SECONDS.sleep(aDelayInSeconds);
+
+                    try {
+                        Result<T> retz = loadBulkResult(clazz, headers.getFirst("Location"));
+                        //BRAD
+                        //parse return here
+
+                    }
+                    catch (Exception e) {
+                        //System.out.println("Error processing bulk request: " + e.getMessage());
+                    }
+                    if (result != null)
+                        return result;
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return result;
+    }
+
+
+    private <T> Result<T> loadBulkResult(Class<T> clazz, String uri){
+
+        Result<T> ret = null;
+
+        System.out.println(uri);
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            counter.getAndIncrement();
+            if(counter.get() > maxTries){
+                throw new ClioException("Exceeded maximum number of retries");
+            }
+            HttpGet get = new HttpGet(uri);
+            get.setHeaders(getBasicHeaders());
+            HttpResponse response = client.execute(get);
+            log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            ret = getResultFromResponse(clazz, response);
+
+
+        }catch(RetryThrowable retry){
+            if(counter.get() < maxTries){
+                ret = loadBulkResult(clazz, uri);
+            }
+
+
+        } catch (IOException | InterruptedException | ClioException e) {
+            log.error(e.getMessage());
+        }
+        return ret;
+
+    }
+
+
+
+
+
+
 
     protected Header[] getBasicHeaders(){
 
@@ -162,7 +259,7 @@ public class AbstractRestAPI {
             String content = EntityUtils.toString(response.getEntity());
             System.out.println(content);
             Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-            ;
+
 
             result =  gson.fromJson(content, TypeToken.getParameterized(Result.class, clazz).getType());
 
@@ -297,4 +394,6 @@ System.out.println(target.getUri().toString());
         return ret;
 
     }
+
+
 }
