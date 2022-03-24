@@ -1,6 +1,7 @@
 package com.ktech.starter.clio.apis;
 
 
+import com.ktech.starter.clio.messages.responses.BulkResult;
 import com.ktech.starter.clio.models.IDObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
@@ -39,7 +40,8 @@ public class ClioApi extends AbstractRestAPI{
 
     public <T> List<T> bulk(Class<T> clazz, LocalDateTime updatedSince, int tries, int aDelayInSeconds) {
 
-        return doBulk(clazz, updatedSince, tries, aDelayInSeconds);
+        BulkResult<T> result =  doBulk(clazz, updatedSince, tries, aDelayInSeconds);
+        return result.asList();
 
     }
 

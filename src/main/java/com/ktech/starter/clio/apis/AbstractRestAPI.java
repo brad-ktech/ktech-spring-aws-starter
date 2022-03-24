@@ -204,11 +204,6 @@ public class AbstractRestAPI {
     }
 
 
-
-
-
-
-
     protected Header[] getBasicHeaders(){
 
         Header[] headers = new Header[2];
