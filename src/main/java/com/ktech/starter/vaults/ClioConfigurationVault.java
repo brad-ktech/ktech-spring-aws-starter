@@ -2,7 +2,7 @@ package com.ktech.starter.vaults;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 
-public class ClioConfigurationVault extends BaseConfigurationVault {
+public class ClioConfigurationVault extends BaseConfigurationVault implements ClioVault{
 
     public ClioConfigurationVault(String secret){
         super(secret);
@@ -28,6 +28,10 @@ public class ClioConfigurationVault extends BaseConfigurationVault {
         return getSecretByKey("clio.clientKey");
     }
 
+    public String getSecretName(){
 
+        return  getSecretByKey("secretName");
+
+    }
 
 }

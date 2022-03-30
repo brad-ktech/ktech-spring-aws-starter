@@ -4,6 +4,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.ktech.starter.clio.security.UnsecureHostnameVerifier;
 import com.ktech.starter.clio.security.UnsecureTrustManager;
 import com.ktech.starter.vaults.ClioConfigurationVault;
+import com.ktech.starter.vaults.ClioVault;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.oauth2.OAuth2ClientSupport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +29,16 @@ public class ClioConfiguration extends BaseVaultConfiguration{
     @Value("#{systemEnvironment['CLIO_SECRET']}")
     private String clioSecret;
 
+
     @Bean
-    public ClioConfigurationVault getClioConfigurations(@Autowired AWSSecretsManager client){
+    public ClioVault getClioConfigurations(@Autowired AWSSecretsManager client){
         String secret = getSecrets(client, clioSecret.trim());
         return new ClioConfigurationVault(secret);
 
     }
+
+
+
 
     @Bean
     public Client getClioClient(@Autowired ClioConfigurationVault vault){
@@ -48,7 +53,8 @@ public class ClioConfiguration extends BaseVaultConfiguration{
             sc.init(new KeyManager[0], UnsecureTrustManager.TrustManagerArray, new java.security.SecureRandom());
             builder.sslContext(sc);
             builder.withConfig(clientConfig);
-            return builder.build();
+            return  builder.build();
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;

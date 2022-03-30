@@ -12,6 +12,7 @@ import com.ktech.starter.clio.models.IDObject;
 import com.ktech.starter.exceptions.ClioException;
 import com.ktech.starter.exceptions.RetryThrowable;
 import com.ktech.starter.vaults.ClioConfigurationVault;
+import com.ktech.starter.vaults.ClioVault;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -46,7 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AbstractRestAPI {
 
     @Autowired
-    protected ClioConfigurationVault vault;
+    protected ClioVault vault;
 
     @Autowired
     protected Client clio;

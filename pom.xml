@@ -11,15 +11,15 @@
 	</parent>
 	<groupId>com.ktech</groupId>
 	<artifactId>ktech-spring-aws-starter</artifactId>
-	<version>0.0.15-SNAPSHOT</version>
+	<version>0.0.16-SNAPSHOT</version>
 	<name>ktech-spring-aws-starter</name>
 	<description>KTech Spring AWS Starter Jar</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>17</java.version>
+		<java.version>11</java.version>
 		<spring-cloud.version>2021.0.0-RC1</spring-cloud.version>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.target>11</maven.compiler.target>
 	</properties>
 
 
