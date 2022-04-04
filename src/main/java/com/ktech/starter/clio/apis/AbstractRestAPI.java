@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.ktech.starter.annotations.ApiFieldList;
 import com.ktech.starter.annotations.ApiFields;
 import com.ktech.starter.annotations.ApiPath;
+import com.ktech.starter.annotations.EncodedFields;
 import com.ktech.starter.clio.messages.Request;
 import com.ktech.starter.clio.messages.Result;
 import com.ktech.starter.clio.messages.responses.BulkResult;
@@ -286,7 +287,7 @@ public class AbstractRestAPI {
         }else if(clazz.isAnnotationPresent(ApiFieldList.class)){
 
             try {
-                Method m = Reflectotron.getFirstMethodWithAnnotation(clazz, ApiFieldList.class);
+                Method m = Reflectotron.getFirstMethodWithAnnotation(clazz, EncodedFields.class);
                 ret = (String)m.invoke(clazz.newInstance());
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 log.error("Could not get Fieldlist from object->" + clazz.getName());
