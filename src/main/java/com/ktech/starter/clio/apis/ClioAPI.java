@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 @RequestScope
-public class ClioApi extends AbstractRestAPI{
+public class ClioAPI extends AbstractRestAPI{
 
 
 

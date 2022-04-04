@@ -1,60 +1,52 @@
 package com.ktech.starter.vaults;
 
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.ResettableListIterator;
+
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class ClioConfigurationMultiVault implements ClioVault{
 
-    private static List<ClioConfigurationVault> vaultz = new ArrayList<>();
-    private AtomicInteger atomic = new AtomicInteger();
+public class ClioConfigurationMultiVault extends BaseConfigurationVault implements ClioVault{
 
-    private ClioConfigurationMultiVault(){
 
+    private ResettableListIterator<String> tokens = null;
+
+
+    protected ClioConfigurationMultiVault(String secret) {
+        super(secret);
     }
 
-    public ClioConfigurationMultiVault(String... jsonz){
-
-        Arrays.stream(jsonz).forEach(json ->{
-            vaultz.add(new ClioConfigurationVault(json));
-        });
-
+    public ClioConfigurationMultiVault(String secret, List<String> tokens){
+        super(secret);
+        this.tokens = IteratorUtils.loopingListIterator(tokens);
     }
-
-    private ClioConfigurationVault getNextVault(){
-
-        Integer idx = atomic.getAndIncrement();
-        if(idx >= vaultz.size()){
-            atomic.set(0);
-        }
-        return vaultz.get(idx);
-
-
-    }
-
-    public ClioConfigurationVault getCurrentVault(){
-
-        return vaultz.get(atomic.get());
-    }
-
-
-    public ClioConfigurationVault getVaultBySecret(String secretName){
-
-        Optional<ClioConfigurationVault> opt =  vaultz.stream().filter(vault ->{
-            return secretName.equalsIgnoreCase(vault.getSecretName());
-        }).findFirst();
-        return opt.orElse(null);
-
-    }
-
-
 
     @Override
     public String getAuthToken() {
-        return getNextVault().getAuthToken();
+
+       return tokens.next();
+
     }
 
     @Override
-    public String getAPITarget() {
-        return getCurrentVault().getAPITarget();
+    public String getAPITarget(){
+
+        return getSecretByKey("clio.baseTarget");
+    }
+
+    public String getClientSecret(){
+
+        return getSecretByKey("clio.clientSecret");
+    }
+
+    public String getClientKey(){
+
+        return getSecretByKey("clio.clientKey");
+    }
+
+    public String getSecretName(){
+
+        return  getSecretByKey("secretName");
+
     }
 }

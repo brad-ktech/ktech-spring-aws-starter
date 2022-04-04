@@ -3,6 +3,7 @@ package com.ktech.starter.clio.apis;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.ktech.starter.annotations.ApiFieldList;
 import com.ktech.starter.annotations.ApiFields;
 import com.ktech.starter.annotations.ApiPath;
 import com.ktech.starter.clio.messages.Request;
@@ -11,6 +12,7 @@ import com.ktech.starter.clio.messages.responses.BulkResult;
 import com.ktech.starter.clio.models.IDObject;
 import com.ktech.starter.exceptions.ClioException;
 import com.ktech.starter.exceptions.RetryThrowable;
+import com.ktech.starter.utilities.Reflectotron;
 import com.ktech.starter.vaults.ClioConfigurationVault;
 import com.ktech.starter.vaults.ClioVault;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,8 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -279,6 +283,15 @@ public class AbstractRestAPI {
             ApiFields ann = clazz.getAnnotation(ApiFields.class);
             ret = encodeFields(ann.fields());
 
+        }else if(clazz.isAnnotationPresent(ApiFieldList.class)){
+
+            try {
+                Method m = Reflectotron.getFirstMethodWithAnnotation(clazz, ApiFieldList.class);
+                ret = (String)m.invoke(clazz.newInstance());
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                log.error("Could not get Fieldlist from object->" + clazz.getName());
+
+            }
         }
         return ret;
     }
