@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
         matchIfMissing = false)
 public class ClioMultiTokenConfiguration extends BaseVaultConfiguration{
 
+    /*
     @Value("#{systemEnvironment['CLIO_SECRET']}")
     private String clioSecret;
 
@@ -67,7 +68,7 @@ public class ClioMultiTokenConfiguration extends BaseVaultConfiguration{
     }
 
 
-
+*/
 
 
 
