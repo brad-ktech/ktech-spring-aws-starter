@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
+import com.ktech.starter.annotations.ApiFields;
+import com.ktech.starter.annotations.ApiPath;
 import lombok.*;
 
 import java.util.Date;
@@ -17,6 +19,10 @@ import java.util.List;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ApiPath(path="contacts")
+@ApiFields(fields="id,etag,name,first_name,middle_name,last_name,type,created_at,prefix,initials,updated_at,"+
+        "primary_email_address,secondary_email_address,is_bill_recipient,is_client,related_contacts{id},custom_field_values{id,field_name," +
+        "value,created_at,updated_at,custom_field,field_type,picklist_option,value}")
 public class Contact extends NamedObject {
 
   @JsonProperty("first_name")
