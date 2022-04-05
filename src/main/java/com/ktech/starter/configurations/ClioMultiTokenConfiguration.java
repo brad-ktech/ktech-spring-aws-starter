@@ -1,23 +1,8 @@
 package com.ktech.starter.configurations;
 
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.ktech.clioauth.entities.UserToken;
-import com.ktech.clioauth.service.ClioAuthorizationService;
-import com.ktech.starter.vaults.ClioConfigurationMultiVault;
-import com.ktech.starter.vaults.ClioVault;
-import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty(

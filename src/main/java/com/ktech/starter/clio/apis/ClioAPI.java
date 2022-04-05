@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.RequestScope;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -28,7 +27,7 @@ public class ClioAPI extends AbstractRestAPI{
     }
 
 
-    public <T> IDObject post(T t){
+    public <T> T post(T t){
 
         return doPost(t);
     }
@@ -36,6 +35,11 @@ public class ClioAPI extends AbstractRestAPI{
     public <T> IDObject patch(T t){
 
         return doPatch(t);
+    }
+
+    public <T> T patch(T t, Long id, Object data){
+
+        return doPatch(t, id, data);
     }
 
     public <T> List<T> bulk(Class<T> clazz, LocalDateTime updatedSince, int tries, int aDelayInSeconds) {

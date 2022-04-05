@@ -13,7 +13,7 @@ import org.json.JSONObject;
 public class Request<T>{
 
     @SerializedName("data")
-    private T data;
+    private Object data;
 
 
     private Request(T t ){

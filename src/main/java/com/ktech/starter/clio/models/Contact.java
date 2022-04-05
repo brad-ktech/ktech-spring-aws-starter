@@ -20,9 +20,10 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ApiPath(path="contacts")
-@ApiFields(fields="id,etag,name,first_name,middle_name,last_name,type,created_at,prefix,initials,updated_at,"+
-        "primary_email_address,secondary_email_address,is_bill_recipient,is_client,related_contacts{id},custom_field_values{id,field_name," +
-        "value,created_at,updated_at,custom_field,field_type,picklist_option,value}")
+@ApiFields(fields ="id,etag,name,first_name,middle_name,last_name,type,created_at,updated_at,prefix,title,"
+        + "initials,primary_phone_number,primary_email_address,secondary_email_address,related_contacts{id},"
+        + "is_client,is_bill_recipient,custom_field_values{id,etag,field_name,value,created_at,updated_at,"
+        + "custom_field,picklist_option}")
 public class Contact extends NamedObject {
 
   @JsonProperty("first_name")
