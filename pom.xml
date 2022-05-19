@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.ktech</groupId>
 	<artifactId>ktech-spring-aws-starter</artifactId>
-	<version>0.0.17-SNAPSHOT</version>
+	<version>0.0.18-SNAPSHOT</version>
 	<name>ktech-spring-aws-starter</name>
 	<description>KTech Spring AWS Starter Jar</description>
 	<properties>
@@ -114,6 +114,12 @@
 			<groupId>org.glassfish.jersey.security</groupId>
 			<artifactId>oauth2-client</artifactId>
 			<version>2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>2.28</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-aws-messaging -->

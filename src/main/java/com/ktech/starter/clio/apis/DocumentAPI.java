@@ -4,6 +4,7 @@ package com.ktech.starter.clio.apis;
 import com.ktech.starter.clio.models.Document;
 import com.ktech.starter.clio.models.Folder;
 import com.ktech.starter.clio.models.NameValuePair;
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -12,12 +13,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.annotation.RequestScope;
 
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequestScope
 public class DocumentAPI extends AbstractRestAPI {
+    public Document getDocument(Long id) {
+        return doGet(Document.class, id);
+    }
+
+    public Optional<Document> getDocumentByName(String documentName) {
+        List<Document> documents = doGetList(Document.class).getData();
+
+        return documents.stream().filter(d -> d.getName().equals(documentName)).findFirst();
+    }
+
     public Boolean uploadDocument(String documentName, Long matterId, byte[] fileByteArray) throws UnsupportedEncodingException {
         Document document = postDocument(documentName, matterId);
 
@@ -67,5 +85,9 @@ public class DocumentAPI extends AbstractRestAPI {
     private void finalizeDocument(Document document) {
         document.getLatestDocumentVersion().setFullyUploaded(true);
         doPatch(document, document.getId(), document.getLatestDocumentVersion());
+    }
+
+    public byte[] getDocumentAsByteArray(Long anId) throws IOException {
+        return doGetDownload(Document.class, anId);
     }
 }

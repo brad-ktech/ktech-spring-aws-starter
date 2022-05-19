@@ -10,6 +10,7 @@ import com.ktech.starter.annotations.EncodedFields;
 import com.ktech.starter.clio.messages.Request;
 import com.ktech.starter.clio.messages.Result;
 import com.ktech.starter.clio.messages.responses.BulkResult;
+import com.ktech.starter.clio.messages.responses.ListResult;
 import com.ktech.starter.clio.models.IDObject;
 import com.ktech.starter.exceptions.ClioException;
 import com.ktech.starter.exceptions.RetryThrowable;
@@ -17,10 +18,12 @@ import com.ktech.starter.utilities.Reflectotron;
 import com.ktech.starter.vaults.ClioConfigurationVault;
 import com.ktech.starter.vaults.ClioVault;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
@@ -85,6 +88,14 @@ public class AbstractRestAPI {
 
     }
 
+    protected <T> byte[] doGetDownload(Class<T> clazz, Long anId) throws IOException {
+        WebTarget target = clio.target(vault.getAPITarget())
+                .path(getPathFromClass(clazz))
+                .path(String.valueOf(anId))
+                .path("download");
+        return doGetDownload(target);
+    }
+
     protected <T> T doGet(Class<T> clazz, Map<String, String> params){
 
         WebTarget target = clio.target(vault.getAPITarget())
@@ -98,6 +109,14 @@ public class AbstractRestAPI {
 
 
 
+    }
+
+    protected <T> ListResult<T> doGetList(Class<T> clazz) {
+        WebTarget target = clio.target(vault.getAPITarget())
+                .path(getPathFromClass(clazz))
+                .queryParam("fields", getFieldsFromClass(clazz));
+
+        return doGetList(clazz, target);
     }
 
 
@@ -230,7 +249,6 @@ public class AbstractRestAPI {
 
 
     protected <T> Result<T> getResultFromResponse(Class<T> clazz, HttpResponse response) throws IOException, RetryThrowable, InterruptedException, ClioException {
-
         Result<T> result = null;
         if (response.getStatusLine().getStatusCode() == 429) {
             // sleep or load balance
@@ -278,6 +296,42 @@ public class AbstractRestAPI {
 
         return result;
 
+    }
+
+    protected <T> ListResult<T> getListResultFromResponse(Class<T> clazz, HttpResponse response) throws IOException, RetryThrowable, InterruptedException, ClioException {
+        ListResult<T> result = null;
+        if (response.getStatusLine().getStatusCode() == 429) {
+            // sleep or load balance
+            Optional<Header> opt = Arrays.stream(response.getAllHeaders()).filter(h -> {
+                return h.getName().contains("Retry");
+            }).findFirst();
+
+            int retry = 0;
+            if(opt.isPresent()) {
+                Header retryHeader = opt.get();
+                retry = Integer.parseInt(retryHeader.getValue());
+            }
+
+            System.out.println("Retry-After: ["+ retry +"]");
+            if (retry > 0) {
+                TimeUnit.SECONDS.sleep(retry+1);
+                throw new RetryThrowable();
+            }
+        } else if (response.getStatusLine().getStatusCode() == 401) {
+            System.out.println("Received 401");
+            throw new ClioException("Recieved 401 :  Unauthorized");
+
+        } else if (response.getStatusLine().getStatusCode() != 200 &&response.getStatusLine().getStatusCode() != 201) {
+            //throw a failure exception
+            throw new ClioException("Status 200: Failure");
+        } else {
+            String content = EntityUtils.toString(response.getEntity());
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+
+            result = gson.fromJson(content, TypeToken.getParameterized(ListResult.class, clazz).getType());
+        }
+
+        return result;
     }
 
 
@@ -437,6 +491,80 @@ public class AbstractRestAPI {
         }catch(RetryThrowable retry){
             if(counter < maxTries){
                 ret = doGet(clazz, target);
+            }
+
+
+        } catch (IOException | InterruptedException | ClioException e) {
+            log.error(e.getMessage());
+        }
+        return ret;
+
+    }
+
+    protected byte[] doGetDownload(WebTarget target) throws IOException {
+        return doGetDownload(target, maxTries);
+    }
+
+    private byte[] doGetDownload(WebTarget target, int tryCount) throws IOException {
+        byte[] ret = null;
+
+        System.out.println(target.getUri().toString());
+
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_OCTET_STREAM);
+        for(Header header : getBasicHeaders()) {
+            invocationBuilder.header(header.getName(), header.getValue());
+        }
+        Response response = invocationBuilder.get();
+
+        MultivaluedMap<String, String> headers = response.getStringHeaders();
+
+        if(response.getStatus() == 429 && tryCount < maxTries) {
+            String retry = headers.getFirst("Retry-After");
+            System.out.println("Retry-After: [" + retry + "]");
+            int timeInSeconds = Integer.parseInt(retry);
+            try {
+                TimeUnit.SECONDS.sleep(timeInSeconds + 1);
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            ret = doGetDownload(target, tryCount + 1);
+        } else if(response.getStatus() == 401 && tryCount < maxTries) {
+            System.out.println("Received 401");
+        } else {
+            InputStream is = (InputStream)response.getEntity();
+
+            try {
+                ret = IOUtils.toByteArray(is);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                is.close();
+            }
+        }
+
+        return ret;
+    }
+
+    protected <T> ListResult<T> doGetList(Class<T> clazz, WebTarget target) {
+        ListResult<T> ret = null;
+        int counter = 0;
+
+        System.out.println(target.getUri().toString());
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            counter++;
+            if(counter > maxTries){
+                throw new ClioException("Exceeded maximum number of retries");
+            }
+            HttpGet get = new HttpGet(target.getUri().toString());
+            get.setHeaders(getBasicHeaders());
+            HttpResponse response = client.execute(get);
+            log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            ret = getListResultFromResponse(clazz, response);
+
+        }catch(RetryThrowable retry){
+            if(counter < maxTries){
+                ret = doGetList(clazz, target);
             }
 
 
