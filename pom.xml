@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.ktech</groupId>
 	<artifactId>ktech-spring-aws-starter</artifactId>
-	<version>0.0.18-SNAPSHOT</version>
+	<version>0.0.19-SNAPSHOT</version>
 	<name>ktech-spring-aws-starter</name>
 	<description>KTech Spring AWS Starter Jar</description>
 	<properties>
@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.6</version>
+			<version>2.11.0</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->

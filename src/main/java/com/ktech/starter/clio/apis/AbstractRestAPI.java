@@ -24,6 +24,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
@@ -132,6 +133,14 @@ public class AbstractRestAPI {
         return doPost(t, target);
 
 
+    }
+
+    protected <T> boolean doDel(Class<T> clazz, Long id) {
+        WebTarget target = clio.target(vault.getAPITarget())
+                .path(getPathFromClass(clazz))
+                .path(id.toString());
+
+        return doDel(target);
     }
 
     protected <T> IDObject doPatch(T  t){
@@ -451,7 +460,6 @@ public class AbstractRestAPI {
             post.setHeaders(getBasicHeaders());
             Request<T> request = Request.of(t);
             post.setEntity(new StringEntity(new Gson().toJson(request)));
-            System.out.println(new Gson().toJson(request));
             HttpResponse response = client.execute(post);
             log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
             System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
@@ -468,6 +476,28 @@ public class AbstractRestAPI {
         return ret;
 
 
+    }
+
+    private boolean doDel(WebTarget target) {
+        boolean success = false;
+        int counter = 0;
+
+        System.out.println(target.getUri().toString());
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            counter++;
+            if(counter > maxTries){
+                throw new ClioException("Exceeded maximum number of retries");
+            }
+            HttpDelete del = new HttpDelete(target.getUri().toString());
+            del.setHeaders(getBasicHeaders());
+            HttpResponse response = client.execute(del);
+            log.info("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            System.out.println("[STATUS] " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            success = response.getStatusLine().getStatusCode() == 204;
+        } catch (IOException | ClioException e) {
+            log.error(e.getMessage());
+        }
+        return success;
     }
 
     private <T> T  doGet(Class<T> clazz, WebTarget target) {

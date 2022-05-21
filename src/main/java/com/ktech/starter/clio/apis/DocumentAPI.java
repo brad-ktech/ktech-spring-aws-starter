@@ -31,9 +31,13 @@ public class DocumentAPI extends AbstractRestAPI {
     }
 
     public Optional<Document> getDocumentByName(String documentName) {
-        List<Document> documents = doGetList(Document.class).getData();
+        List<Document> documents = getAllDocuments();
 
         return documents.stream().filter(d -> d.getName().equals(documentName)).findFirst();
+    }
+
+    public List<Document> getAllDocuments() {
+        return doGetList(Document.class).getData();
     }
 
     public Boolean uploadDocument(String documentName, Long matterId, byte[] fileByteArray) throws UnsupportedEncodingException {
